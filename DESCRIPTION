@@ -1,10 +1,13 @@
 Package: PublicOracle
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Public OHDSI WebAPI Interface
 Version: 0.1
 Date: 2015-04-14
-Author: Who wrote it
-Maintainer: Who to complain to <yourfault@somewhere.net>
-Description: More about what it does (maybe more than one line)
-License: What license is it under?
+Author: Marc A. Suchard [cre, aut]
+Maintainer: Marc A. Suchard <msuchard@ucla.edu>
+Description: This package provides an R interface to the OHDSI public WebAPI server.
+License: Apache License 2.0
+Imports:
+  RCurl,
+  rjson
 LazyData: TRUE
