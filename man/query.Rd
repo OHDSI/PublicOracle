@@ -4,7 +4,7 @@
 \alias{query}
 \title{Simple query}
 \usage{
-query(content)
+query(content, urlApi = getPublicOhsdiUrl())
 }
 \description{
 Simple query
