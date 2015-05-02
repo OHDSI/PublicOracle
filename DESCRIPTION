@@ -3,11 +3,16 @@ Type: Package
 Title: Public OHDSI WebAPI Interface
 Version: 0.1
 Date: 2015-04-14
-Author: Marc A. Suchard [cre, aut]
+Author:
+  Marc A. Suchard [cre, aut],
+  Martijn J. Schuemie [aut]
 Maintainer: Marc A. Suchard <msuchard@ucla.edu>
 Description: This package provides an R interface to the OHDSI public WebAPI server.
 License: Apache License 2.0
 Imports:
   RCurl,
-  rjson
+  rjson,
+  DBI,
+  DatabaseConnector,
+  SqlRender
 LazyData: TRUE

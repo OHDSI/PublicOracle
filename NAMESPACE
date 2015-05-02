@@ -2,6 +2,8 @@
 
 export(createPublicOhdsiConnection)
 export(findCommonAncestors)
+export(getConceptInformation)
+export(getPublicOhdsiColumnNames)
 export(getPublicOhdsiTableNames)
 export(getPublicOhdsiUrl)
 export(query)

@@ -1,16 +1,24 @@
-#' Simple query
+#' Simple query to OHDSI WebAPI
+#'
+#' @param content WebAPI query text
+#' @param urlApi  URL of an OHDSI WebAPI server; missing defaults to the public OHDSI server
 #'
 #' @importFrom RCurl getURL
 #' @importFrom rjson fromJSON
+#'
 #' @examples
+#' \donttest{
 #' query("vocabulary/concept/19059796")
+#' }
 #'
 #' @export
-query <- function(content, urlApi = getPublicOhsdiUrl()) {
+query <- function(content, urlApi = getPublicOhdsiUrl()) {
    rjson::fromJSON(RCurl::getURL(paste(urlApi, content, sep = "")))
 }
 
 #' Get the public OHDSI WebAPI URL
+#'
+#' @return URL to the public OHDSI WebAPI
 #'
 #' @export
 getPublicOhdsiUrl <- function() {
@@ -19,7 +27,15 @@ getPublicOhdsiUrl <- function() {
 
 #' Create connection to public OHDSI database
 #'
+#' @return An established connection to the public OHDSI server
+#'
 #' @importFrom DatabaseConnector createConnectionDetails
+#'
+#' @examples
+#' \donttest{
+#' conn <- createPublicOhdsiConnection()
+#' }
+#'
 #' @export
 createPublicOhdsiConnection <- function() {
 
@@ -39,69 +55,91 @@ createPublicOhdsiConnection <- function() {
   return(conn)
 }
 
-# conn <- createPublicOhdsiConnection()
-#
-# text <- "SELECT
-# A.concept_id                 Class_Concept_Id,
-# A.concept_name               Class_Name,
-# A.concept_code               Class_Code,
-# A.concept_class_id           Classification_id,
-# A.vocabulary_id              Class_vocabulary_id,
-# V.vocabulary_name            Class_vocabulary_name,
-# CA.min_levels_of_separation  Levels_of_Separation
-# FROM concept_ancestor   CA,
-# concept                A,
-# concept                D,
-# vocabulary             V
-# WHERE  CA.descendant_concept_id = D.concept_id
-# AND    CA.ancestor_concept_id = A.concept_id
-# AND    A.vocabulary_id = V.vocabulary_id
-# AND    D.concept_id = 1545999;"  # atorvastatin info
-#
-# quertSql(conn, text)
-
 #' Get table names from public OHDSI database
 #'
-#' @importFrom DatabaseConnector querySql
-#' @importFrom DBI dbDisconnect
+#' @param conn  An established OHDSI database connection; NULL defaults to the public OHDSI server
+#'
+#' @examples
+#' \donttest{
+#' getPublicOhdsiTableNames()
+#' }
+#'
 #' @export
 getPublicOhdsiTableNames <- function(conn = NULL) {
-  release <- FALSE
-  if (is.null(conn)) {
-    conn <- createPublicOhdsiConnection()
-    release <- TRUE
-  }
-  result <- DatabaseConnector::querySql(conn,
-"SELECT table_name
- FROM information_schema.tables
- WHERE table_schema='public'
- AND table_type='BASE TABLE';")
+  query <-
+    "SELECT table_name
+     FROM information_schema.tables
+     WHERE table_schema='public'
+     AND table_type='BASE TABLE';"
 
-  if (release) DBI::dbDisconnect(conn)
+  return(queryPublicOhdsiDatabase(conn,
+                                  query))
+}
 
-  return (result)
+#' Get field names from a public OHDSI table
+#'
+#' @param conn  An established OHDSI database connection; NULL defaults to the public OHDSI server
+#' @param tableName  An OMOP CDM table name
+#'
+#' @examples
+#' \donttest{
+#' getPublicOhdsiColumnNames(tableName = "concept")
+#' }
+#'
+#' @export
+getPublicOhdsiColumnNames <- function(conn = NULL,
+                                      tableName) {
+  parameterizedSql <-
+    "SELECT column_name,* FROM information_schema.columns
+     WHERE table_name = '@tableName'
+     AND table_schema='public'
+     ORDER by ordinal_position"
+
+  return(queryPublicOhdsiDatabase(conn,
+                                  parameterizedSql,
+                                  tableName = tableName))
+}
+
+#' Retrieve OMOP concept information by ID
+#'
+#' @param conn  An established OHDSI database connection; NULL defaults to the public OHDSI server
+#' @param conceptIds  A vector of OMOP concept IDs
+#'
+#' @examples
+#' \donttest{
+#' getConceptInformation(conceptIds = c(19059796,705755))
+#' }
+#'
+#' @export
+getConceptInformation <- function(conn = NULL,
+                                  conceptIds) {
+
+  listIds <- paste(conceptIds,collapse=",")
+  parameterizedSql <-
+    "SELECT *
+     FROM concept
+     WHERE concept_id in (@listIds)"
+
+  return(queryPublicOhdsiDatabase(conn,
+                                  parameterizedSql,
+                                  listIds = listIds))
 }
 
 #' Find common ancestors for OMOP concept IDs
 #'
-#' @importFrom SqlRender renderSql
-#' @importFrom DatabaseConnector querySql
-#' @importFrom DBI dbDisconnect
+#' @param conn  An established OHDSI database connection; NULL defaults to the public OHDSI server
+#' @param conceptIds  A vector of OMOP concept IDs
 #'
 #' @examples
+#' \donttest{
 #' findCommonAncestors(conceptIds = c(703470, 705755, 738156))
+#' }
 #'
 #' @export
 findCommonAncestors <- function(conn = NULL,
-                               conceptIds) {
+                                conceptIds) {
 
   if (length(conceptIds) < 2) stop("Must provide at least two OMOP concept IDs")
-
-  release <- FALSE
-  if (is.null(conn)) {
-    conn <- createPublicOhdsiConnection()
-    release <- TRUE
-  }
 
   listIds <- paste(conceptIds, collapse = ",")
   listIds <- paste("(", listIds, ")", sep = "")
@@ -120,12 +158,30 @@ findCommonAncestors <- function(conn = NULL,
      having count(*) = @countIds
      order by min(min_levels_of_separation)"
 
-  renderedSql <- SqlRender::renderSql(parameterizedSql, listIds = listIds,
-                           countIds = countIds)
+  return(queryPublicOhdsiDatabase(conn,
+                                  parameterizedSql,
+                                  countIds = countIds,
+                                  listIds = listIds))
+}
 
+#' @importFrom SqlRender renderSql
+#' @importFrom DatabaseConnector querySql
+#' @importFrom DBI dbDisconnect
+#' @keywords internal
+queryPublicOhdsiDatabase <- function(conn = NULL,
+                                     parameterizedSql, ...) {
+  # Set-up connection if necessary
+  release <- FALSE
+  if (is.null(conn)) {
+    conn <- createPublicOhdsiConnection()
+    release <- TRUE
+  }
+
+  # Render and query database
+  renderedSql <- SqlRender::renderSql(parameterizedSql, ...)
   result <- DatabaseConnector::querySql(conn, renderedSql$sql)
 
+  # Release connection if necessary and return result
   if (release) DBI::dbDisconnect(conn)
-
   return (result)
 }

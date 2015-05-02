@@ -2,14 +2,21 @@
 % Please edit documentation in R/AllQueries.R
 \name{query}
 \alias{query}
-\title{Simple query}
+\title{Simple query to OHDSI WebAPI}
 \usage{
-query(content, urlApi = getPublicOhsdiUrl())
+query(content, urlApi = getPublicOhdsiUrl())
+}
+\arguments{
+\item{content}{WebAPI query text}
+
+\item{urlApi}{URL of an OHDSI WebAPI server; missing defaults to the public OHDSI server}
 }
 \description{
-Simple query
+Simple query to OHDSI WebAPI
 }
 \examples{
+\donttest{
 query("vocabulary/concept/19059796")
+}
 }
 

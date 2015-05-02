@@ -6,6 +6,9 @@
 \usage{
 getPublicOhdsiUrl()
 }
+\value{
+URL to the public OHDSI WebAPI
+}
 \description{
 Get the public OHDSI WebAPI URL
 }

@@ -6,7 +6,15 @@
 \usage{
 getPublicOhdsiTableNames(conn = NULL)
 }
+\arguments{
+\item{conn}{An established OHDSI database connection; NULL defaults to the public OHDSI server}
+}
 \description{
 Get table names from public OHDSI database
+}
+\examples{
+\donttest{
+getPublicOhdsiTableNames()
+}
 }
 

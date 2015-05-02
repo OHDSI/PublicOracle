@@ -6,7 +6,15 @@
 \usage{
 createPublicOhdsiConnection()
 }
+\value{
+An established connection to the public OHDSI server
+}
 \description{
 Create connection to public OHDSI database
+}
+\examples{
+\donttest{
+conn <- createPublicOhdsiConnection()
+}
 }
 
