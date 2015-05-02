@@ -87,9 +87,13 @@ getPublicOhdsiTableNames <- function(conn = NULL) {
 #' @importFrom SqlRender renderSql
 #' @importFrom DatabaseConnector querySql
 #' @importFrom DBI dbDisconnect
+#'
+#' @examples
+#' findCommonAncestors(conceptIds = c(703470, 705755, 738156))
+#'
 #' @export
 findCommonAncestors <- function(conn = NULL,
-                               conceptIds = c(703470, 705755, 738156)) {
+                               conceptIds) {
 
   if (length(conceptIds) < 2) stop("Must provide at least two OMOP concept IDs")
 

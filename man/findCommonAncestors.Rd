@@ -4,9 +4,12 @@
 \alias{findCommonAncestors}
 \title{Find common ancestors for OMOP concept IDs}
 \usage{
-findCommonAncestors(conn = NULL, conceptIds = c(703470, 705755, 738156))
+findCommonAncestors(conn = NULL, conceptIds)
 }
 \description{
 Find common ancestors for OMOP concept IDs
+}
+\examples{
+findCommonAncestors(conceptIds = c(703470, 705755, 738156))
 }
 
