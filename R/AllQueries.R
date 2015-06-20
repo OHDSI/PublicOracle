@@ -142,7 +142,6 @@ findCommonAncestors <- function(conn = NULL,
   if (length(conceptIds) < 2) stop("Must provide at least two OMOP concept IDs")
 
   listIds <- paste(conceptIds, collapse = ",")
-  listIds <- paste("(", listIds, ")", sep = "")
 
   countIds <- length(conceptIds)
 
@@ -153,7 +152,7 @@ findCommonAncestors <- function(conn = NULL,
             min(min_levels_of_separation) minimumDistance
      from concept_ancestor ca
      join concept c on ca.ancestor_concept_id = c.concept_id
-     where ca.descendant_concept_id in @listIds
+     where ca.descendant_concept_id in (@listIds)
      group by c.concept_name, ca.ancestor_concept_id, c.vocabulary_id
      having count(*) = @countIds
      order by min(min_levels_of_separation)"
@@ -163,6 +162,40 @@ findCommonAncestors <- function(conn = NULL,
                                   countIds = countIds,
                                   listIds = listIds))
 }
+
+#' Find ATC ancestors for OMOP concept IDs
+#'
+#' @param conn  An established OHDSI database connection; NULL defaults to the public OHDSI server
+#' @param conceptIds  A vector of OMOP concept IDs
+#'
+#' @examples
+#' \donttest{
+#' findAncestors(conceptIds = c(703470, 705755, 738156))
+#' }
+#'
+#' @export
+findAncestors <- function(conn = NULL,
+                             conceptIds) {
+
+  listIds <- paste(conceptIds, collapse = ",")
+
+  parameterizedSql <-
+    "select ancestor_concept_id,
+            c.concept_name,
+            c.vocabulary_id,
+            descendant_concept_id,
+            min_levels_of_separation,
+            max_levels_of_separation
+     from concept_ancestor ca
+     join concept c on ca.ancestor_concept_id = c.concept_id
+     where ca.descendant_concept_id in (@listIds)"
+
+  return(queryPublicOhdsiDatabase(conn,
+                                  parameterizedSql,
+                                  listIds = listIds))
+}
+
+
 
 #' @importFrom SqlRender renderSql
 #' @importFrom DatabaseConnector querySql
