@@ -200,7 +200,7 @@ findAncestors <- function(conn = NULL,
 #' @importFrom SqlRender renderSql
 #' @importFrom DatabaseConnector querySql
 #' @importFrom DBI dbDisconnect
-#' @keywords internal
+#' @export
 queryPublicOhdsiDatabase <- function(conn = NULL,
                                      parameterizedSql, ...) {
   # Set-up connection if necessary
